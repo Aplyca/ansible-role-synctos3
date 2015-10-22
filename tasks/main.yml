@@ -1,0 +1,26 @@
+---
+- name: Fail the play if not confirmation
+  fail: msg="Not confirmed"
+  when: confirmation != 'y'
+
+- name: Export the DB
+  sudo: yes
+  mysql_db:
+    name: "{{ tos3['database']['name'] }}"
+    state: dump
+    target: "{{ tos3['storage']['dir'] }}/{{ tos3['database']['dir'] }}/{{ tos3['database']['name'] }}.sql"
+
+- name: Compress the DB
+  shell: "tar -pczf {{ tos3['database']['dir'] }}/{{ tos3['database']['name'] }}.sql.tar.gz -C {{ tos3['database']['dir'] }} {{ tos3['database']['name'] }}.sql"
+  args:
+    chdir: "{{ tos3['storage']['dir'] }}"
+
+- name: Delete DB File
+  file:
+    path: "{{ tos3['storage']['dir'] }}/{{ tos3['database']['dir'] }}/{{ tos3['database']['name'] }}.sql"
+    state: absent
+
+- name: Uploading content
+  shell: "aws s3 sync . s3://{{ tos3['storage']['bucket'] }} --profile {{ tos3['storage']['profile'] }}"
+  args:
+    chdir: "{{ tos3['storage']['dir'] }}"

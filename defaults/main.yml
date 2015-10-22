@@ -1,0 +1,9 @@
+---
+tos3:
+    storage:
+      bucket: app-storage
+      dir: /mnt/storage/app
+      profile: default
+    database:
+        dir: data/sql/mysql
+        name: app
